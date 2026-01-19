@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo API テスト</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 { color: #333; }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 10px 15px;
+      font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    button:hover { background: #0056b3; }
+    button.danger { background: #dc3545; }
+    button.danger:hover { background: #c82333; }
+    button.success { background: #28a745; }
+    .todo-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .todo-item.done { text-decoration: line-through; color: #888; }
+    .todo-item span { flex: 1; margin-left: 10px; }
+    #result {
+      background: #1e1e1e;
+      color: #0f0;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Todo API テスト</h1>
+
+  <div class="card">
+    <h2>新しいTodoを追加</h2>
+    <input type="text" id="newTodo" placeholder="タスクを入力...">
+    <button onclick="addTodo()">追加</button>
+  </div>
+
+  <div class="card">
+    <h2>Todoリスト</h2>
+    <button onclick="fetchTodos()">更新</button>
+    <div id="todoList"></div>
+  </div>
+
+  <div class="card">
+    <h2>APIレスポンス</h2>
+    <div id="result">ここにAPIのレスポンスが表示されます</div>
+  </div>
+
+  <script>
+    const API = '';
+
+    async function fetchTodos() {
+      try {
+        const res = await fetch(`${API}/todos`);
+        const data = await res.json();
+        showResult(data);
+        renderTodos(data);
+      } catch (e) {
+        showResult({ error: e.message });
+      }
+    }
+
+    function renderTodos(todos) {
+      const list = document.getElementById('todoList');
+      list.innerHTML = todos.map(todo => `
+        <div class="todo-item ${todo.done ? 'done' : ''}">
+          <input type="checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo(${todo.id}, this.checked)">
+          <span>${todo.title}</span>
+          <button class="danger" onclick="deleteTodo(${todo.id})">削除</button>
+        </div>
+      `).join('');
+    }
+
+    async function addTodo() {
+      const input = document.getElementById('newTodo');
+      const title = input.value.trim();
+      if (!title) return;
+
+      try {
+        const res = await fetch(`${API}/todos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title })
+        });
+        const data = await res.json();
+        showResult(data);
+        input.value = '';
+        fetchTodos();
+      } catch (e) {
+        showResult({ error: e.message });
+      }
+    }
+
+    async function toggleTodo(id, done) {
+      try {
+        const res = await fetch(`${API}/todos/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ done })
+        });
+        const data = await res.json();
+        showResult(data);
+        fetchTodos();
+      } catch (e) {
+        showResult({ error: e.message });
+      }
+    }
+
+    async function deleteTodo(id) {
+      try {
+        const res = await fetch(`${API}/todos/${id}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        showResult(data);
+        fetchTodos();
+      } catch (e) {
+        showResult({ error: e.message });
+      }
+    }
+
+    function showResult(data) {
+      document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+    }
+
+    // 初期読み込み
+    fetchTodos();
+  </script>
+</body>
+</html>

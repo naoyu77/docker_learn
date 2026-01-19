@@ -109,6 +109,58 @@ docker build -t my-app .
 docker run -d -p 3000:3000 my-app
 ```
 
+## 依存関係のキャッシュ活用
+
+```dockerfile
+# 依存関係を先にコピー
+COPY package*.json ./
+RUN npm install
+
+# ソースコードは後でコピー
+COPY index.js ./
+```
+
+→ `package.json` が変わらなければ `npm install` がキャッシュされ、ビルドが速くなる
+
+## .dockerignore
+
+`node_modules` などをコピー対象から除外する。
+
+```
+node_modules
+npm-debug.log
+```
+
+## 便利なコマンド
+
+```bash
+# 実行中の全コンテナを停止
+docker stop $(docker ps -q)
+
+# 停止中の全コンテナを削除
+docker rm $(docker ps -aq)
+```
+
+`$(...)` はシェルのコマンド置換。コンテナがない場合はエラーになる。
+
+## Express で HTML と API を同時に配信
+
+```javascript
+// 静的ファイル配信
+app.use(express.static('public'));
+
+// API
+app.get('/todos', ...);
+```
+
+1つのサーバー（同じポート）でHTMLとAPIの両方を提供できる。
+
+```
+ブラウザ → :3000 → Express
+                    ├── /         → index.html
+                    └── /todos    → API (JSON)
+```
+
 ## Tips
 
 - `WORKDIR /app` はディレクトリがなければ自動で作成される
