@@ -122,14 +122,23 @@ COPY index.js ./
 
 → `package.json` が変わらなければ `npm install` がキャッシュされ、ビルドが速くなる
 
-## .dockerignore
+## .dockerignore と .gitignore の違い
 
-`node_modules` などをコピー対象から除外する。
+| ファイル | 用途 |
+|----------|------|
+| `.gitignore` | **Git** で無視するファイル |
+| `.dockerignore` | **docker build** で無視するファイル |
+
+両方に似た内容を書くことが多いが、目的が違う。
+
+### .dockerignore の例
 
 ```
 node_modules
 npm-debug.log
 ```
+
+→ `docker build` 時にコンテナにコピーされない
 
 ## 便利なコマンド
 
